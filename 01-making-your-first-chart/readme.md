@@ -1,4 +1,4 @@
-[SVG attribute](https://developer.mozilla.org/en-US/docs/Web/SVG/Element)
+[SVG attribute](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute)
 
 
 
