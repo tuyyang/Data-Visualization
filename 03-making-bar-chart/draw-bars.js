@@ -3,6 +3,7 @@ async function drawBars() {
   const dataset = await d3.json('../my_weather_data.json')
 
   const metricAccessor = d => d.humidity
+  const yAccessor = d => d.length
 
   //create dimensions
   const width = 600
@@ -46,8 +47,6 @@ async function drawBars() {
   // console.log(bins)
 
   //create y scale
-  const yAccessor = d => d.length
-
   const yScale = d3.scaleLinear()
     .domain([0, d3.max(bins, yAccessor())])
     .range([dimensions.boundedHeight, 0])
@@ -55,6 +54,8 @@ async function drawBars() {
   
   //draw data
   const binsGroup = bounds.append('g')
+
+  const binGroup = binsGroup.selectAll('g')
     .data(bins)
     .enter().append('g')
   
@@ -63,6 +64,11 @@ async function drawBars() {
   const barRects = binsGroup.append('rect')
     .attr('x', d => xScale(d.x0) + barPadding / 2)
     .attr('y', d => yScale(yAccessor(d)))
+    .attr('width', d => d3.max([
+      0, 
+      xScale(d.x1) - xScale(d.x0) - barPadding]))
+    .attr('height', d => dimensions.boundedHeight - yScale(yAccessor(d)))
+    .attr('fill', 'cornflowerblue')
 }
 
 drawBars()
