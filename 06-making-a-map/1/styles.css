@@ -1,4 +1,4 @@
-/* @font-face {
+@font-face {
   font-family: 'Inter var';
   src: url('./../../Inter.var.woff2');
 }
@@ -26,7 +26,7 @@ body {
   stroke: #cadddd;
   fill: none;
 }
-
+/* 
 .my-location {
   fill: #8f97db;
   stroke: white;
@@ -102,4 +102,4 @@ circle {
 
 .legend-value:first-of-type {
   text-anchor: end;
-} */
+}  */

@@ -45,7 +45,7 @@ async function drawMap() {
   // console.log(dimensions.height)
 
   //3.create canvas
-  const wrapper = d3.select('wrapper')
+  const wrapper = d3.select('#wrapper')
     .append('svg')
       .attr('width', dimensions.width)
       .attr('height', dimensions.height)
@@ -63,5 +63,29 @@ async function drawMap() {
   const colorScale = d3.scaleLinear()
     .domain([-maxChange, 0, maxChange])
     .range(['indigo', 'white', 'darkgreen'])
+
+  //5.draw data
+  const earth = bounds.append('path')
+    .attr('class', 'earth')
+    .attr('d', pathGenerator(sphere))
+
+  const graticuleJson = d3.geoGraticule10()
+  // console.log(graticuleJson)
+  const graticule = bounds.append('path')
+    .attr('class', 'graticule')
+    .attr('d', pathGenerator(graticuleJson))
+  
+  const countries = bounds.selectAll('.country')
+    .data(countryShapes.features)
+    .enter().append('path')
+      .attr('class', 'country')
+      .attr('d', pathGenerator)
+      .attr('fill', d => {
+        const metricValue = metricDataByCountry[countryIdAccessor(d)]
+        // console.log(metricValue)
+        if (typeof metricValue == 'undefined') return '#e2e6e9'
+        return colorScale(metricValue)
+      })
+
 }
 drawMap()
