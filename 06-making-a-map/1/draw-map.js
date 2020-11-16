@@ -87,5 +87,91 @@ async function drawMap() {
         return colorScale(metricValue)
       })
 
+  //6. draw peripherals
+  const legendGroup = wrapper.append('g')
+    .attr('transform', `translate(${120}, 
+      ${
+      dimensions.width < 800 
+        ? dimensions.boundedHeight - 30
+        : dimensions.boundedHeight * 0.5
+    })`)
+
+  const legendTitle = legendGroup.append('text')
+    .attr('y', -23)
+    .attr('class', 'legend-title')
+    .text('Population growth')
+
+  const legendByline = legendGroup.append('text')
+    .attr('y', -9)
+    .attr('class', 'legend-byline')
+    .text('Percent change in 2017')
+
+  const defs = wrapper.append('defs')
+
+  const legendGradientId = 'legend-gradient'
+
+  const gradient = defs.append('linearGradient')
+      .attr('id', legendGradientId)
+    .selectAll('stop')
+    .data(colorScale.range())
+    .enter().append('stop')
+      .attr('stop-color', d => d)
+      .attr('offset', (d, i) => `${
+        i * 100 / 2 
+        //2 is one less than our array's length
+      }`)
+
+  const legendWidth = 120
+  const legendHeight = 16
+  const legendGradient = legendGroup.append('rect')
+      .attr('x', - legendWidth / 2)
+      .attr('height', legendHeight)
+      .attr('width', legendWidth)
+      .style('fill', `url(#${legendGradientId})`)
+
+  const legendValueRight = legendGroup.append('text')
+      .attr('class', 'legend-value')
+      .attr('x', legendWidth / 2 + 10)
+      .attr('y', legendHeight / 2)
+      .text(`${d3.format('.1f')(maxChange)}%`)
+
+  const legendValueLeft = legendGroup.append('text')
+      .attr('class', 'legend-value')
+      .attr('x', -legendWidth / 2 - 10)
+      .attr('y', legendHeight / 2)
+      .text(`${d3.format('.1f')(-maxChange)}%`)
+      .style('text-anchor', 'end')
+
+  //7.set up interaction
+  countries.on('mouseenter', onMouseEnter)
+      .on('mouseleave', onMouseLeave)
+
+  const tooltip = d3.select('#tooltip')
+
+  function onMouseEnter(datum) {
+    tooltip.style('opacity', 1)
+
+    const metricValue = metricDataByCountry[countryIdAccessor(datum)]
+
+    tooltip.select('#country')
+      .text(countryNameAccessor(datum))
+
+    tooltip.select('#value')
+      .text(`${d3.format('.2f')(metricValue) || 0}`)
+
+      const [centerX, centerY] = pathGenerator.centroid(datum)
+
+      const x = centerX + dimensions.margin.left
+      const y = centerY + dimensions.margin.top
+  
+      tooltip.style("transform", `translate(`
+        + `calc( -50% + ${x}px),`
+        + `calc(-100% + ${y}px)`
+        + `)`)
+  }
+
+  function onMouseLeave() {
+    tooltip.style('opacity', 0)
+  }
 }
 drawMap()
