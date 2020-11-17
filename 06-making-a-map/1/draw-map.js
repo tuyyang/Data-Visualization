@@ -1,25 +1,28 @@
 async function drawMap() {
-
-  //1.access map
+  //1.Access data
   const countryShapes = await d3.json('./../world-geojson.json')
   const dataset = await d3.csv('./../data_bank_data.csv')
+  // console.log(countryShape)
+  // console.log(dataset)
 
   const countryNameAccessor = d => d.properties['NAME']
   const countryIdAccessor = d => d.properties['ADM0_A3_IS']
+
   const metric = 'Population growth (annual %)'
 
-  let metricDataByCountry ={}
+  let metricDataByCountry = {}
   dataset.forEach(d => {
-    if(d['Series Name'] != metric) return
+    if (d['Series Name'] != metric) return
     metricDataByCountry[d['Country Code']] = +d['2017 [YR2017]'] || 0
   })
-
-  // console.log(dataset[3]['Series Name'])
+  // console.log(dataset[0]['Country Code'])
+  // console.log(dataset[0]['2017 [YR2017]'])
   // console.log(metricDataByCountry)
-  
-  //2.create chart dimensions
+
+  // 2. Create chart dimensions
+
   let dimensions = {
-    width: innerWidth * 0.9,
+    width: window.innerWidth * 0.9,
     margin: {
       top: 10,
       right: 10,
@@ -28,74 +31,80 @@ async function drawMap() {
     }
   }
 
-  dimensions.boundedWidth = dimensions.width - dimensions.margin.right - dimensions.margin.left
+  dimensions.boundedWidth = dimensions.width
+    - dimensions.margin.left
+    - dimensions.margin.right
 
   const sphere = ({type: 'Sphere'})
   const projection = d3.geoEqualEarth()
     .fitWidth(dimensions.boundedWidth, sphere)
-
+  
   const pathGenerator = d3.geoPath(projection)
-  // console.log(pathGenerator(sphere))
-  const [[x0, y0], [x1, y1]] = pathGenerator.bounds(sphere)
-  // console.log([[x0, y0], [x1, y1]])
+
+  const [
+    [x0, y0], [x1, y1]
+  ] = pathGenerator.bounds(sphere)
+
+  // console.log([x0, y0], [x1, y1])
 
   dimensions.boundedHeight = y1
-  dimensions.height = dimensions.boundedHeight + dimensions.margin.top + dimensions.margin.bottom
+  dimensions.height = dimensions.boundedHeight
+    + dimensions.margin.top
+    + dimensions.margin.bottom
 
-  // console.log(dimensions.height)
+  //3.Draw canvas
+  const wrapper = d3.select("#wrapper")
+    .append("svg")
+      .attr("width", dimensions.width)
+      .attr("height", dimensions.height)
 
-  //3.create canvas
-  const wrapper = d3.select('#wrapper')
-    .append('svg')
-      .attr('width', dimensions.width)
-      .attr('height', dimensions.height)
+  const bounds = wrapper.append("g")
+    .style("transform", `translate(${
+      dimensions.margin.left
+      }px, ${
+      dimensions.margin.top
+      }px)`)
 
-  const bounds = wrapper.append('g')
-    .style('transform', `translate(${dimensions.margin.left}px, ${dimensions.margin.top}px)`)
-  
-  //4.crate scales
-  const metricValues = Object.values(metricDataByCountry) 
-  // console.log(metricValues)  Object.values() 返回一个可枚举属性值的数组
+  //4.Create scales
+  const metricValues = Object.values(metricDataByCountry)
   const metricValueExtent = d3.extent(metricValues)
-  // console.log(metricValueExtent)
+// console.log(metricValueExtent)
+  const maxChange = d3.max([- metricValueExtent[0], metricValueExtent[1]])
+  // console.log(maxChange)
 
-  const maxChange = d3.max([-metricValueExtent[0], metricValueExtent[1]])
   const colorScale = d3.scaleLinear()
     .domain([-maxChange, 0, maxChange])
     .range(['indigo', 'white', 'darkgreen'])
 
-  //5.draw data
+  //5.Draw data
   const earth = bounds.append('path')
-    .attr('class', 'earth')
-    .attr('d', pathGenerator(sphere))
+      .attr('class', 'earth')
+      .attr('d', pathGenerator(sphere))
 
   const graticuleJson = d3.geoGraticule10()
-  // console.log(graticuleJson)
   const graticule = bounds.append('path')
-    .attr('class', 'graticule')
-    .attr('d', pathGenerator(graticuleJson))
-  
+      .attr('class', 'graticule')
+      .attr('d', pathGenerator(graticuleJson))
+
   const countries = bounds.selectAll('.country')
-    .data(countryShapes.features)
-    .enter().append('path')
-      .attr('class', 'country')
-      .attr('d', pathGenerator)
-      .attr('fill', d => {
-        const metricValue = metricDataByCountry[countryIdAccessor(d)]
-        // console.log(metricValue)
-        if (typeof metricValue == 'undefined') return '#e2e6e9'
-        return colorScale(metricValue)
-      })
+      .data(countryShapes.features)
+      .enter().append('path')
+        .attr('class', 'country')
+        .attr('d', pathGenerator)
+        .attr('fill', d => {
+          const metricValue = metricDataByCountry[countryIdAccessor(d)]
+          if(typeof metricValue == 'undefined') return '#e2e6e9'
+          return colorScale(metricValue)
+        })
 
-  //6. draw peripherals
+  //6.Draw peripherals
   const legendGroup = wrapper.append('g')
-    .attr('transform', `translate(${120}, 
-      ${
-      dimensions.width < 800 
-        ? dimensions.boundedHeight - 30
-        : dimensions.boundedHeight * 0.5
+    .attr('transform', `translate(${120}, ${
+      dimensions.width < 800
+      ? dimensions.boundedHeight - 30
+      : dimensions.boundedHeight * 0.5
     })`)
-
+    
   const legendTitle = legendGroup.append('text')
     .attr('y', -23)
     .attr('class', 'legend-title')
@@ -107,7 +116,7 @@ async function drawMap() {
     .text('Percent change in 2017')
 
   const defs = wrapper.append('defs')
-
+  
   const legendGradientId = 'legend-gradient'
 
   const gradient = defs.append('linearGradient')
@@ -118,34 +127,35 @@ async function drawMap() {
       .attr('stop-color', d => d)
       .attr('offset', (d, i) => `${
         i * 100 / 2 
-        //2 is one less than our array's length
+        //? i do not know
       }`)
-
+  
   const legendWidth = 120
   const legendHeight = 16
+
   const legendGradient = legendGroup.append('rect')
-      .attr('x', - legendWidth / 2)
-      .attr('height', legendHeight)
-      .attr('width', legendWidth)
-      .style('fill', `url(#${legendGradientId})`)
+    .attr('x', -legendWidth / 2)
+    .attr('height', legendHeight)
+    .attr('width', legendWidth)
+    .style('fill', `url(#${legendGradientId})`)
 
-  const legendValueRight = legendGroup.append('text')
-      .attr('class', 'legend-value')
-      .attr('x', legendWidth / 2 + 10)
-      .attr('y', legendHeight / 2)
-      .text(`${d3.format('.1f')(maxChange)}%`)
+  const legendValueRight = legendGroup.append("text")
+    .attr("class", "legend-value")
+    .attr("x", legendWidth / 2 + 10)
+    .attr("y", legendHeight / 2)
+    .text(`${d3.format(".1f")(maxChange)}%`)
 
-  const legendValueLeft = legendGroup.append('text')
-      .attr('class', 'legend-value')
-      .attr('x', -legendWidth / 2 - 10)
-      .attr('y', legendHeight / 2)
-      .text(`${d3.format('.1f')(-maxChange)}%`)
-      .style('text-anchor', 'end')
+  const legendValueLeft = legendGroup.append("text")
+    .attr("class", "legend-value")
+    .attr("x", -legendWidth / 2 - 10)
+    .attr("y", legendHeight / 2)
+    .text(`${d3.format(".1f")(-maxChange)}%`)
+    .style("text-anchor", "end")
 
-  //7.set up interaction
+  //7. set up interactions
   countries.on('mouseenter', onMouseEnter)
       .on('mouseleave', onMouseLeave)
-
+  
   const tooltip = d3.select('#tooltip')
 
   function onMouseEnter(datum) {
@@ -157,21 +167,22 @@ async function drawMap() {
       .text(countryNameAccessor(datum))
 
     tooltip.select('#value')
-      .text(`${d3.format('.2f')(metricValue) || 0}`)
+      .text(`${d3.format(',.2f')(metricValue || 0)}%`)
 
-      const [centerX, centerY] = pathGenerator.centroid(datum)
+    const [centerX, centerY] = pathGenerator.centroid(datum)
 
-      const x = centerX + dimensions.margin.left
-      const y = centerY + dimensions.margin.top
+    const x = centerX + dimensions.margin.left
+    const y = centerY + dimensions.margin.top
   
-      tooltip.style("transform", `translate(`
+    tooltip.style("transform", `translate(`
         + `calc( -50% + ${x}px),`
         + `calc(-100% + ${y}px)`
         + `)`)
   }
-
+  
   function onMouseLeave() {
     tooltip.style('opacity', 0)
   }
 }
+
 drawMap()
