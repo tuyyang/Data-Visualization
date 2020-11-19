@@ -21,6 +21,7 @@ const drawColorRange = (container, colorScale, scaleName) => {
     const stops = new Array
     (numberOfStop).fill(0).map((d, i) => 
       i * (1 / (numberOfStop - 1)))
+    // ?
 
     stops.forEach(stop => {
       gradient.append('stop')
