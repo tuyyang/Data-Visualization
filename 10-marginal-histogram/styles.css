@@ -15,6 +15,26 @@ body {
   background: #f8f9fa;
 }
 
+.title {
+  position: relative;
+  width: 600px;
+  margin-bottom: 0.2em;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+  font-feature-settings: 'tnum' 1;
+}
+
+.description {
+  max-width: 40em;
+  margin-bottom: 1.0em;
+  font-size: 0.9em;
+  text-align: center;
+  line-height: 1.4em;
+  opacity: 0.5;
+}
+
 svg text {
   fill: #34495e;
 }
@@ -40,4 +60,12 @@ circle {
 
 .bounds-background {
   fill: white;
+}
+
+.histogram-area {
+  fill: #cbd2d7;
+}
+
+.right-histogram {
+  transform-origin: 0 70px;
 }

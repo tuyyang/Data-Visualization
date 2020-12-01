@@ -23,7 +23,9 @@ async function drawScatter() {
       right: 90,
       bottom: 50, 
       left: 50
-    }
+    },
+    histogramMargin: 10,
+    histogramHeight: 70
   }
 
   dimensions.boundedWidth = dimensions.width - dimensions.margin.left - dimensions.margin.right
@@ -79,6 +81,65 @@ async function drawScatter() {
       .attr('cy', d => yScale(yAccessor(d)))
       .attr('r', 4)
       .style('fill', d => colorScale(colorAccessor(d)))
+
+
+  //Top
+  const topHistogramGenerator = d3.histogram()
+    .domain(xScale.domain())
+    .value(xAccessor)
+    .thresholds(20)
+
+  const topHistogramBins = topHistogramGenerator(dataset)
+
+  const topHistogramYScale = d3.scaleLinear()
+    .domain(d3.extent(topHistogramBins, d => d.length))
+    .range([dimensions.histogramHeight, 0])
+
+  const topHistogramBounds = bounds.append('g')
+    .attr('transform', `translate(0, ${
+      -dimensions.histogramHeight
+      -dimensions.histogramMargin
+    })`)
+
+  const topHistogramLineGenerator = d3.area()
+    .x(d => xScale((d.x0 + d.x1) / 2))
+    .y0(dimensions.histogramHeight)
+    .y1(d => topHistogramYScale(d.length))
+    .curve(d3.curveBasis)
+
+  const topHistogramElement = topHistogramBounds.append('path')
+    .attr('d', d => topHistogramLineGenerator(topHistogramBins))
+    .attr('class', 'histogram-area')
+
+  //Right
+  const rightHistogramGenerator = d3.histogram()
+    .domain(yScale.domain())
+    .value(yAccessor)
+    .thresholds(20)
+
+  const rightHistogramBins = rightHistogramGenerator(dataset)
+
+  const rightHistogramYScale = d3.scaleLinear()
+    .domain(d3.extent(rightHistogramBins, d => d.length))
+    .range([dimensions.histogramHeight, 0])
+
+  const rightHistogramBounds = bounds.append('g')
+    .attr('class', 'right-histogram')
+    .style('transform', `translate(${
+      dimensions.boundedWidth + dimensions.histogramMargin
+    }px, -${
+      dimensions.histogramHeight
+    }px) rotate(90deg)`)
+
+  const rightHistogramLineGenerator = d3.area()
+    .x(d => yScale((d.x0 + d.x1) / 2))
+    .y0(dimensions.histogramHeight)
+    .y1(d => rightHistogramYScale(d.length))
+    .curve(d3.curveBasis)
+
+  const rightHistogramElement = rightHistogramBounds.append('path')
+    .attr('d', d => rightHistogramLineGenerator(rightHistogramBins))
+    .attr('class', 'histogram-area')
   
   //6.draw peripherals
   const xAxisGenerator = d3.axisBottom()
