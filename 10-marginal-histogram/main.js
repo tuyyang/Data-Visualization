@@ -168,6 +168,36 @@ async function drawScatter() {
       .attr('x', -dimensions.boundedHeight / 2)
       .attr('y', -dimensions.margin.left + 10)
       .html('Maximum Temperature (&deg;F)')
+
+  //7. set up interaction
+
+  //create voronoi for tooltip
+  const voronoiGenerator = d3.voronoi()
+    .x(d => xScale(xAccessor(d)))
+    .y(d => yScale(yAccessor(d)))
+    .extent([
+      [0, 0],
+      [dimensions.boundedWidth, dimensions.boundedHeight]
+    ])
+
+  
+  const tooltip = d3.select('#tooltip')
+
+  const hoverElementsGroup = bounds.append('g')
+    .attr('opacity', 0)
+
+  const horizontalLine = hoverElementsGroup.append('rect')
+    .attr('class', 'hover-line')
+
+  const verticalLine = hoverElementsGroup.append('rect')
+    .attr('class', 'hover-line')
+
+  const hoverLineThickness = 10
+
+  horizontalLine.attr('x', x)
+    .attr('y'. y - hoverLineThickness / 2)
+    .attr('width', dimensions.boundedWidth + dimensions.histogramMargin + dimensions.histogramHeight - x)
+    .attr('height', hoverLineThickness)
 }
 
 drawScatter()

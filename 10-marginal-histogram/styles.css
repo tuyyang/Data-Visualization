@@ -54,9 +54,6 @@ svg text {
   transform: rotate(-90deg);
 }
 
-circle {
-  fill: cornflowerblue;
-}
 
 .bounds-background {
   fill: white;
@@ -68,4 +65,21 @@ circle {
 
 .right-histogram {
   transform-origin: 0 70px;
+}
+
+.tick line,
+.domain {
+  stroke: #cfd4d8;
+}
+
+circle {
+  /* fill: cornflowerblue; */
+  fill: #5758BB;
+  opacity: 0.8;
+}
+
+.tooltip-dot {
+  fill: none;
+  stroke: #6f1e51;
+  stroke-width: 2px;
 }
